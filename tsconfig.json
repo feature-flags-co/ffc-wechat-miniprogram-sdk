@@ -1,0 +1,19 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "outDir": "../ffc-wechat-miniprogram-sdk-demo/miniprogram/node_modules/ffc-wechat-miniprogram-sdk/build",
+    "noImplicitAny": false,
+    "module": "esnext",
+    "lib": [ "es2019", "dom" ],
+    "target": "es5",
+    "allowJs": true,
+    "sourceMap": true,
+    "declaration": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+  ]
+}
