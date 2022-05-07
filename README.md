@@ -1,5 +1,5 @@
 # [featureflag.co](https://featureflag.co) wechat miniprogram SDK
-[Check Chinese version](./README_ZH.md)
+[查看中文版](./README_ZH.md)
 
 ## Introduction
 

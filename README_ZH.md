@@ -1,27 +1,27 @@
 # [敏捷开关](https://featureflag.co) 微信小程序 SDK
 [Check English version](./README.md)
 
-## Introduction
+## 概述
 
 SDK 主要完成以下工作:
-- 从服务端获取 feature flags 并保持数据同步更新
+- 从服务端获取 feature flags 并保持数据并保持和服务端数据的同步。
 
 ## 数据同步
-我们使用 WebSocket 来保持与服务端的数据同步，并存入 localStorage. 无论何时当任意 feature flag 发生变化时，更改会被近实时地推送到 SDK, 经过测试，平均同步时间少于 **100** ms. 如果网络发生终端数据同步会停止，当网络恢复后我们会自动重新建立 WebSocket 连接。
+SDK 使用 WebSocket 来保持与服务端的数据同步，获取数据后存入 localStorage. 无论何时当任意 feature flag 发生变化时，变更会被接近实时地推送到 SDK, 经过测试，同步过程平均耗时少于 **100** ms. 当网络发生中断时数据同步会停止，当网络恢复后 SDK 会自动重新建立 WebSocket 连接。
 
 ## 离线模式
 所有数据都存储于本地 localStorage, 所以在以下情况下，在没有网络的情况下 SDK 仍能正常工作：
 - SDK 已经从之前的连接中取得过数据
-- ffcClient.bootstrap(featureFlags) 方法被调用， 并且 featureFlags 参数包含所有使用中的 feature flags
+- ffcClient.bootstrap(featureFlags) 方法被调用， 并且 featureFlags 参数包含所有当前使用中的 feature flags
 
 与此同时，SDK 会尝试以渐增的时间间隔重新与服务器建立连接以确保网络恢复后第一时间恢复与服务器的数据同步。
 
 ## feature flag 的计算
-由于所有数据都在本地，所有计算过程也都在本地，并且是实时同步计算的。
+由于所有数据都在本地，所有计算过程也都在本地，并且是实时同步计算的。计算过程时间复杂度 O(1), 小于 1 ms。
 
-## Getting started
+## 集成 SDK
 ### 使用 npm
-前往 **project.config.json** 中 **miniprogramRoot** 指定的文件夹并运行如下命令:
+前往 **project.config.json** 文件中 **miniprogramRoot** 参数指定的文件夹并运行如下命令:
   ```
   npm install ffc-wechat-miniprogram-sdk --save
   ```
@@ -46,9 +46,9 @@ npm i
 npm run build
 ```
 
-1. 将 **build** 文件夹复制到小程序项目根目录并且命名为 ffc-wechat-miniprogram-sdk
+3. 将 **build** 文件夹复制到小程序项目根目录并且重新命名为 ffc-wechat-miniprogram-sdk
 
-2. 引入 SDK:
+4. 引入 SDK:
 ```javascript
 import ffcClient from 'path to ffc-wechat-miniprogram-sdk/index';
 ```
@@ -90,10 +90,10 @@ App({
 以下为完整的参数列表：
 
 - **secret**: 项目环境的 secret. **必填项** (注意: 如果 enableDataSync 设置为false， 则 secret 可以为空)
-- **anonymous**: 如果值为 true 则使用匿名用户， 登录之后可以调用 **identify** 方法来切换用户。默认值为 false. **必填项**
+- **anonymous**: 如果值为 true 则使用匿名用户， 登录之后可以调用 **identify()** 方法来切换用户。默认值为 false. **必填项**
 - **bootstrap**: 使用本地 feature flags 初始化 SDK。当提供此参数时将会立即触发 ready event。 **非必填项**
-- **enableDataSync**: 如果值为 false 则不会与服务器进行数据同步，这时请确保通过 **bootstrap** 参数提供了所有的 feature flags 或者通过 **bootstrap** 方法传入所有 feature flags。 默认值为 true。 **非必填项** 
-- **api**: 服务端地址，默认值为敏捷开关服务器地址。只有在使用 self-host 服务端时才需要提供次参数。 **非必填项**
+- **enableDataSync**: 如果值为 false 则不会与服务器进行数据同步，这时请确保通过 **bootstrap** 参数提供了所有的 feature flags 或者通过 **bootstrap()** 方法传入所有 feature flags。 默认值为 true。 **非必填项** 
+- **api**: 服务端地址，默认值为敏捷开关服务器地址。只有在使用 self-host 服务端时才需要提供此参数。 **非必填项**
 - **user**: 当前用户，如果 **anonymous** 参数设置为 true 则 无需提供 user。 
   - **userName**: 用户名. **必填项**
   - **id**: 用户唯一 id. **必填项**
@@ -109,7 +109,7 @@ App({
      ```
 
 #### 初始化过程延迟时间
-SDK 初始化时会向服务器发送请求并建立 WebSocket 连接， 这个过程耗时 100 毫秒左右。如果希望 feature flags 立即可用，可用在初始化时通过 bootstrap 提供本地 feature flags, 这时会立即触发 ready event。初始化完成后 SDK 会用服务端 feature flags 替换本地数据。
+SDK 初始化时会向服务器发送请求并建立 WebSocket 连接， 这个过程耗时 100 毫秒左右。如果希望 feature flags 立即可用，可以在初始化时通过 bootstrap 提供本地 feature flags, 这时会立即触发 ready event。初始化完成后 SDK 会用服务端数据替换本地数据。
 
 ### 获取 feature flag 的值
 
@@ -184,7 +184,7 @@ Component({
 
 
 ### bootstrap
-如果初始化 SDK 之前已经有所有 feature flags，可用使用以下任意一种方法将其传给 SDK：
+如果初始化 SDK 之前已经有所有 feature flags，则可以使用以下任意一种方法将其传给 SDK：
 - 通过 **init** 方法
 ```javascript
   // define the option with the bootstrap parameter
@@ -222,11 +222,11 @@ const featureflags = [{ // the array should contain all your feature flags
 ffcClient.bootstrap(featureflags);
 ```
 
-**可用将参数 enableDataSync 设置为 false 以停止和服务器间的数据同步**。这时必须提供 bootstrap 参数或者调用 bootstrap 方法以提供本地版的 feature flags.
+**可以将参数 enableDataSync 设置为 false 以停止和服务器间的数据同步**。这时必须提供 bootstrap 参数或者调用 bootstrap() 方法以提供本地版的 feature flags 数据。
 
-可用使用 event 或者 promise 等待 SDK 初始化结束。
+可以使用 event 或者 promise 等待 SDK 初始化结束。
 
-SDK 在初始化完成后会自动触发 ready event。可用在代码中监听 ready 事件来确保获取开关值之前本地已经取得数据。
+SDK 在初始化完成后会自动触发 ready event。可以在代码中监听 ready 事件来确保获取开关值之前本地已经取得数据。
 
 ```javascript
 ffcClient.on('ready', (data) => {
@@ -236,7 +236,7 @@ ffcClient.on('ready', (data) => {
 
 ```
 
-或者也可以使用 promise。SDK 提供了 waitUntilReady() 方法，和 ready 事件实现相同的效果，但是提供了 promise API, 以及支持使用 await。
+或者也可以使用 promise。SDK 提供了 waitUntilReady() 方法，和 ready 事件实现相同的效果，但是提供了 promise API, 同时支持使用 await。
 
 ```javascript
 ffcClient.waitUntilReady().then((data) => {
@@ -249,7 +249,7 @@ const featureFlags = await ffcClient.waitUntilReady();
 ```
 
 ### 初始化结束之后切换用户
-如果初始化时使用了匿名用户，登录后我们往往需要切换到登录后的用户，这时可以使用 identity（） 方法来切换用户。
+如果初始化时使用了匿名用户，登录后我们往往需要切换到登录后的用户，这时可以使用 identity() 方法来切换用户。
 ```javascript
   ffcClient.identify(user);
 ```
@@ -271,7 +271,7 @@ ffcClient.on('ff_update', (changes) => {
 });
 
 ```
-- subscribe to the changes of a specific feature flag
+- 监听某个具体 feature flag 的变动
 ```javascript
 // replace feature_flag_key with your feature flag key
 ffcClient.on('ff_update:feature_flag_key', (change) => {
