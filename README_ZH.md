@@ -1,6 +1,8 @@
 # [敏捷开关](https://featureflag.co) 微信小程序 SDK
 [Check English version](./README.md)
 
+## 发布小程序前请确保已将 https://api.featureflag.co 添加到小程序合法域名中 
+
 ## 概述
 
 SDK 主要完成以下工作:
