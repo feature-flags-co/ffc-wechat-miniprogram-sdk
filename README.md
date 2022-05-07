@@ -1,5 +1,5 @@
 # [featureflag.co](https://featureflag.co) wechat miniprogram SDK
-[Check English version](./README_EN.md)
+[Check Chinese version](./README_ZH.md)
 
 ## Introduction
 
@@ -21,35 +21,35 @@ After initialization, the SDK has all the feature flags locally and it does not 
 
 ## Getting started
 ### Install with npm
+Go to the directory defined by **miniprogramRoot** in **project.config.json** and run:
   ```
-  npm install ffc-wechat-miniprogram-sdk
+  npm install ffc-wechat-miniprogram-sdk --save
   ```
 
 To import the SDK:
 ```javascript
-// Using ES2015 imports
 import ffcClient from 'ffc-wechat-miniprogram-sdk';
-
-// Using TypeScript imports
-import ffcClient from 'ffc-js-client-side-sdk';
 ```
-### Install with source code
+### Install without npm
 
-1. Clone this repository and run the following commands in the root directory
+1. Clone this repository
 ```
+git clone https://github.com/feature-flags-co/ffc-wechat-miniprogram-sdk.git
+
+```  
+
+2. Run the following commands in the root directory
+```
+cd ffc-wechat-miniprogram-sdk
 npm i
 npm run build
 ```
 
-2. copy the **build** folder to your project and change the folder name to ffc-wechat-miniprogram-sdk
+3. Copy the **build** folder to your project and change the folder name to ffc-wechat-miniprogram-sdk
 
-3. import the SDK:
+4. Import the SDK:
 ```javascript
-// Using ES2015 imports
-import ffcClient from 'path to ffc-wechat-miniprogram-sdk';
-
-// Using TypeScript imports
-import ffcClient from 'path to ffc-wechat-miniprogram-sdk';
+import ffcClient from 'path to ffc-wechat-miniprogram-sdk/index';
 ```
 
 ### Initializing the SDK
@@ -62,7 +62,7 @@ App({
   globalData: {
   },
   onLaunch() {
-    const option = {
+    const option = { // you can specify the type with IOption if using Typescript
       secret: "your env secret",
       user: {
         userName: "the user's user name",
@@ -74,44 +74,9 @@ App({
     ffcClient.init(option);
 
     // set user，this usually happens after login
-    const user = {
+    const user = { // you can specify the type with IUser if using Typescript
       "userName": "the user's user name",
-      "email": "",
-      "id": "the user's unique identifier", // the unique user Id, can be wechat id
-      "customizedProperties": [  // any customized properties
-      ]
-    };
-
-    ffcClient.identify(user);
-  },
-  ...
-})
-```
-
-```typescript
-import ffcClient, { IOption, IUser } from 'ffc-wechat-miniprogram-sdk'; // use path to your sdk if you are not using npm
-
-App<IAppOption>({
-  globalData: {
-  },
-  onLaunch() {
-    const option: IOption = {
-      secret: "your env secret",
-      user: {
-        userName: "the user's user name",
-        id: "the user's unique identifier"
-      }
-    };
-
-    // initialization client
-    ffcClient.init(option);
-
-    // set user，this usually happens after login
-    const user: IUser = {
-      "userName": "the user's user name",
-      "email": "",
-      "id": "the user's unique identifier", // the unique user Id, can be wechat id
-      "customizedProperties": [  // any customized properties
+      "id": "the user's unique identifier" // the unique user Id, can be wechat id
       ]
     };
 
@@ -122,6 +87,7 @@ App<IAppOption>({
 ```
 
 The complete list of the available parameters in option:
+
 - **secret**: the client side secret of your environment. **mandatory** (NB. this becomes optional if enableDataSync equals false)
 - **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
 - **bootstrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
@@ -145,15 +111,16 @@ The complete list of the available parameters in option:
 Initializing the client makes a remote request to featureflag.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
 
 ### Get the varation value of a feature flag
-Two methods to get the variation of a feature flag
 
 ```javascript
 import ffcClient from "ffc-wechat-miniprogram-sdk";
 
+// you can specify the type with IFlagConfig[] if using Typescript
 const flagConfigs = [
   { key: 'flagkey', defaultValue: 'default value' }
 ];
 
+// using Page
 Page({
   data: {
     flagConfigs,
@@ -169,7 +136,9 @@ Page({
     console.log(variation);
 
     // to execute any code when flag value changes
-    ffcClient.on(`ff_update:flagkey`, (change: any) => {
+    ffcClient.on(`ff_update:flagkey`, (change) => {
+      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
+      // the type is IFeatureFlagChange if you are using Typescript
       // do your work
       console.log(change.newValue);
     });
@@ -177,26 +146,12 @@ Page({
   ...
 })
 
-// reference a flag in wxml file
-<view class="container">
-  <view>
-    <text>{{flags['flagkey']}}</text>
-  </view>
-</view>
-```
-
-```typescript
-import ffcClient, { IFlagConfig } from "ffc-wechat-miniprogram-sdk";
-
-const flagConfigs: IFlagConfig[] = [
-  { key: 'flagkey', defaultValue: 'default value' }
-];
-
-Page({
+// Using Component
+Component({
   data: {
     flagConfigs,
   },
-  onLoad() {
+  attached() {
     // to use a feature flag
     console.log(this.data.flags['flagkey']);
 
@@ -207,13 +162,16 @@ Page({
     console.log(variation);
 
     // to execute any code when flag value changes
-    ffcClient.on(`ff_update:flagkey`, (change: any) => {
+    ffcClient.on(`ff_update:flagkey`, (change) => {
+      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
+      // the type is IFeatureFlagChange if you are using Typescript
       // do your work
       console.log(change.newValue);
     });
   },
   ...
 })
+
 
 // reference a flag in wxml file
 <view class="container">
@@ -222,6 +180,7 @@ Page({
   </view>
 </view>
 ```
+
 
 ### bootstrap
 If you already have the feature flags available, two ways to pass them to the SDK instead of requesting from the remote.
@@ -308,6 +267,7 @@ To get notified when a feature flag is changed, we offer two methods
 ```javascript
 ffcClient.on('ff_update', (changes) => {
   // changes has this structure [{id: 'the feature_flag_key', oldValue: '', newValue: ''}]
+  // the type is IFeatureFlagChange[] if you are using Typescript
   ...
 });
 
@@ -317,11 +277,8 @@ ffcClient.on('ff_update', (changes) => {
 // replace feature_flag_key with your feature flag key
 ffcClient.on('ff_update:feature_flag_key', (change) => {
   // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-  const myFeature = Ffc.variation('feature_flag_key', 'default value');
+  // the type is IFeatureFlagChange if you are using Typescript
   ...
 });
 
 ```
-
-
-

@@ -28,7 +28,7 @@ export interface IOption {
 
 export interface IUser {
   userName: string,
-  email: string,
+  email?: string,
   country?: string,
   id: string,
   customizedProperties?: ICustomizedProperty[]

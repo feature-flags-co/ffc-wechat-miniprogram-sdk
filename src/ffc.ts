@@ -3,7 +3,7 @@ import { eventHub } from "./events";
 import { logger } from "./logger";
 import store from "./store";
 import { networkService } from "./network.service";
-import { IFeatureFlagSet, ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType } from "./types";
+import { IFeatureFlagSet, ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType, IFeatureFlagChange } from "./types";
 import { ffcguid, validateOption, validateUser } from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedBufferTopic, featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
@@ -109,7 +109,7 @@ export class Ffc {
     });
   }
 
-  on(name: string, cb: Function) {
+  on(name: string, cb: (change: IFeatureFlagChange) => void) {
     eventHub.subscribe(name, cb);
   }
 
