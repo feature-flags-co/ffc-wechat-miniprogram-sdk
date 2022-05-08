@@ -1,25 +1,22 @@
 # [敏捷开关](https://featureflag.co) 微信小程序 SDK
 [Check English version](./README.md)
 
-## 发布小程序前请确保已将 https://api.featureflag.co 添加到小程序合法域名中 
+**发布小程序前请确保已将 https://api.featureflag.co 添加到小程序合法域名中**
 
 ## 概述
-
 SDK 主要完成以下工作:
-- 从服务端获取 feature flags 并保持数据并保持和服务端数据的同步。
+- 从服务端获取 feature flags 并保持和服务端数据的同步。
 
 ## 数据同步
-SDK 使用 WebSocket 来保持与服务端的数据同步，获取数据后存入 localStorage. 无论何时当任意 feature flag 发生变化时，变更会被接近实时地推送到 SDK, 经过测试，同步过程平均耗时少于 **100** ms. 当网络发生中断时数据同步会停止，当网络恢复后 SDK 会自动重新建立 WebSocket 连接。
+SDK 使用 WebSocket 来保持与服务端的数据同步，从服务端获取的数据均会存入 localStorage。无论何时当任意 feature flag 发生变化时，变更会被接近实时地推送到 SDK，经过测试，同步过程平均耗时少于 **100 ms**。当网络发生中断时 SDK 会尝试以渐增的时间间隔与服务器重新建立连接，及时恢复数据同步。
 
 ## 离线模式
-所有数据都存储于本地 localStorage, 所以在以下情况下，在没有网络的情况下 SDK 仍能正常工作：
-- SDK 已经从之前的连接中取得过数据
-- ffcClient.bootstrap(featureFlags) 方法被调用， 并且 featureFlags 参数包含所有当前使用中的 feature flags
-
-与此同时，SDK 会尝试以渐增的时间间隔重新与服务器建立连接以确保网络恢复后第一时间恢复与服务器的数据同步。
+SDK 所需的所有数据都存储于本地 localStorage, 因此在没有网络的环境中，满足下述条件之一的情况下，SDK 仍能正常工作：
+- SDK 已经从之前的 WebSocket 连接中取得过数据
+- ffcClient.bootstrap(featureFlags) 方法被手动调用， 并且 featureFlags 参数包含所有当前使用中的 feature flags
 
 ## feature flag 的计算
-由于所有数据都在本地，所有计算过程也都在本地，并且是实时同步计算的。计算过程时间复杂度 O(1), 小于 1 ms。
+所有数据都在本地，所有计算过程也都在本地，并且是实时同步计算的。计算过程时间复杂度 O(1), 小于 1 ms。
 
 ## 集成 SDK
 ### 使用 npm
@@ -73,7 +70,7 @@ App({
       }
     };
 
-    // initialization client
+    // initialize client
     ffcClient.init(option);
 
     // set user，this usually happens after login
