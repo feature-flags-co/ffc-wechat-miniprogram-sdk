@@ -7,12 +7,12 @@ const flagConfigs = [
   { key: 'log-title', defaultValue: '当前为log页' }
 ];
 
-Page({
+Component({
   data: {
     flagConfigs,
     logs: []
   },
-  onLoad() {
+  attached() {
     this.setData({
       logs: (wx.getStorageSync('logs') || []).map(log => {
         return {
