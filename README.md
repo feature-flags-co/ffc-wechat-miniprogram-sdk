@@ -116,6 +116,7 @@ The complete list of the available parameters in option:
 Initializing the client makes a remote request to featureflag.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
 
 ### Get the varation value of a feature flag
+SDK would create a **flags** object from flagConfigs and put it under data of Page or Component, to reference a flag in JavaScript, use this code **this.data.flags['flagkey']**, and **flags['flagkey']** in wxml.
 
 ```javascript
 import ffcClient from "ffc-wechat-miniprogram-sdk";
