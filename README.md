@@ -1,6 +1,8 @@
 # [featureflag.co](https://featureflag.co) wechat miniprogram SDK
 [查看中文版](./README_ZH.md)
 
+**[Check demo](./demos/README.MD)**
+
 ## Before publish your mini program, please make sure you have added https://api.featureflag.co to your mini program's domain
  
 

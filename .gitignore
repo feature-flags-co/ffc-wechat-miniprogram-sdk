@@ -6,3 +6,5 @@ commonjs
 tests
 .vscode
 build
+
+miniprogram_npm
