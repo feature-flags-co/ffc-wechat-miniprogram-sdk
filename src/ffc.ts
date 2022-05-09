@@ -77,7 +77,6 @@ export class Ffc {
 
     // reconnect to websocket
     eventHub.subscribe(websocketReconnectTopic, async () => {
-      console.log(websocketReconnectTopic);
       try {
         await this.dataSync();
         if (!this._readyEventEmitted) {

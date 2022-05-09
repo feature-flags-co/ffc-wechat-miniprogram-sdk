@@ -1,12 +1,7 @@
 {
   "description": "项目配置文件，详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
-  "packOptions": {
-    "ignore": [],
-    "include": []
-  },
   "miniprogramRoot": "miniprogram/",
   "compileType": "miniprogram",
-  "projectname": "ts-demo",
   "setting": {
     "useCompilerPlugins": [
       "typescript"
@@ -36,16 +31,21 @@
       "outputPath": ""
     },
     "disableUseStrict": false,
-    "minifyWXML": true
+    "minifyWXML": true,
+    "ignoreUploadUnusedFiles": true
   },
   "simulatorType": "wechat",
   "simulatorPluginLibVersion": {},
   "condition": {},
   "srcMiniprogramRoot": "miniprogram/",
-  "appid": "wx6d166bd960a79526",
-  "libVersion": "2.24.1",
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
-  }
+  },
+  "libVersion": "2.24.1",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "appid": "wx6d166bd960a79526"
 }

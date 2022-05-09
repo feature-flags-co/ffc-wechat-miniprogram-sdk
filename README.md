@@ -50,7 +50,7 @@ npm i
 npm run build
 ```
 
-3. Copy the **build** folder to your project and change the folder name to ffc-wechat-miniprogram-sdk
+3. Copy the **dist** folder to your project and change the folder name to ffc-wechat-miniprogram-sdk
 
 4. Import the SDK:
 ```javascript

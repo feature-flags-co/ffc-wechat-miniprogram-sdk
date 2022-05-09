@@ -6,5 +6,7 @@ commonjs
 tests
 .vscode
 build
+ts-build
+dist
 
 miniprogram_npm
