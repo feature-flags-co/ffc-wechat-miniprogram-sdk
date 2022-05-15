@@ -7,7 +7,8 @@ App<IAppOption>({
   onLaunch() {
     const option: IOption = {
       secret: "YThmLWRmZjUtNCUyMDIxMDkxNzA3NTYyMV9fMl9fMjJfXzExNl9fZGVmYXVsdF82NTM3Mg==", // replace with your won secret
-      anonymous: true
+      anonymous: true,
+      api: "https://api-dev.featureflag.co"
     };
 
     // initialization client
