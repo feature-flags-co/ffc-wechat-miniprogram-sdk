@@ -31,36 +31,57 @@ function fetchFlags(component: any): any {
     component.setData({ flags: flags });
 }
 
-let oldPage = Page;
-
-Page = (options: any) => {
-    let oldOnLoad = options.onLoad;
-
-    options.onLoad = function () {
-        fetchFlags(this);
-        oldOnLoad && oldOnLoad.call(this);
-    }
-
-    return oldPage(options);
-}
-
-let oldComponent = Component;
-
-Component = (options: any) => {
-    let oldAttached = options.attached;
-
-    options.attached = function () {
-        fetchFlags(this);
-        oldAttached && oldAttached.call(this);
-    }
-
-    if (options.lifetimes && options.lifetimes.attached) {
-        options.lifetimes.attached = function () {
-            fetchFlags(this);
-            oldAttached && oldAttached.call(this);
+// defined this interface to avoid typescript error
+interface IQuery {
+    params?: any;
+  }
+  
+  // 还原上个页面的参数到 options, 并删除 options.params
+  const extractParams = function (query: IQuery  = {}) {
+    const { params } = query
+    let options = { ...query }
+    if (params !== undefined) {
+        options = {
+            ...options,
+            ...JSON.parse(decodeURIComponent(params)),
         }
+        delete options.params
     }
-    
-    return oldComponent(options);
-}
+    return options
+  }
+  
+  let originPage = Page;
+  
+  Page = function (config: any = {}) {
+      let { onLoad } = config;
+  
+      config.onLoad = function (options: any = {}) {
+        fetchFlags(this);
+        onLoad && onLoad.call(this, extractParams(options));
+      }
+  
+      return originPage (config);
+  }
+  
+  let originalComponent = Component;
+  
+  Component = function (config: any = {}) {
+      const { attached } = config;
+  
+      config.attached = function (options: any = {}) {
+          fetchFlags(this);
+          attached && attached.call(this, extractParams(options));
+      }
+  
+      if (config.lifetimes && config.lifetimes.attached) {
+        const lifetimeAttached = config.lifetimes.attached;
+  
+        config.lifetimes.attached = function () {
+              fetchFlags(this);
+              lifetimeAttached && lifetimeAttached.call(this);
+          }
+      }
+  
+      return originalComponent(config);
+  }
 
