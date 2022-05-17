@@ -108,7 +108,7 @@ export class Ffc {
     });
   }
 
-  on(name: string, cb: (change: IFeatureFlagChange) => void) {
+  on(name: string, cb: (changes: IFeatureFlagChange | IFeatureFlagChange[]) => void) {
     eventHub.subscribe(name, cb);
   }
 
