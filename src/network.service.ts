@@ -6,8 +6,7 @@ import { generateConnectionToken } from "./utils";
 import throttleUtil from "./throttleutil";
 
 
-const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000, 10000, 30000];
-let retryCounter = 0;
+const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000];
 
 class NetworkService {
   private user: IUser | undefined;
@@ -37,6 +36,13 @@ class NetworkService {
 
   private socket: any;
 
+  private reconnect(self: any) {
+    self.socket = null;
+    const waitTime = socketConnectionIntervals[Math.min(self.retryCounter++, socketConnectionIntervals.length - 1)];
+    setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
+    logger.logDebug(waitTime);
+  }
+
   createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
     const that = this;
     if (that.socket) {
@@ -54,7 +60,7 @@ class NetworkService {
         messageType: 'ping',
         data: null
       };
-  
+
       setTimeout(() => {
         try {
           if (socket?.readyState === WebSocket.OPEN) {
@@ -62,6 +68,7 @@ class NetworkService {
             sendPingMessage(socket);
           } else {
             logger.logDebug(`socket closed at ${new Date()}`);
+            that.reconnect(that);
           }
         } catch (err) {
           logger.logDebug(err);
@@ -88,7 +95,7 @@ class NetworkService {
 
       // this is the websocket instance to which the current listener is binded to, it's different from that.socket
       logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
-      that.socket.send(that.formatSendDataForSocket(payload));
+      that.socket?.send(that.formatSendDataForSocket(payload));
       sendPingMessage(that.socket);
     });
   
@@ -98,14 +105,12 @@ class NetworkService {
       if (code === 4003) { // do not reconnect when 4003
         return;
       }
-      const waitTime = socketConnectionIntervals[Math.min(that.retryCounter++, socketConnectionIntervals.length)];
-      setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
-      logger.logDebug(waitTime);
+
+      that.reconnect(that);
     });
   
     // Connection error
     that.socket.onError(function (errMsg) {
-      // reconnect
       logger.logDebug(errMsg);
     });
   
@@ -136,7 +141,7 @@ class NetworkService {
     return {
         data: JSON.stringify(message),
         success: () => logger.logDebug(`websocket send success`),
-        fail: (event) => logger.log(`websocket error when sending message: ${event}`)
+        fail: (event) => logger.log(`websocket error when sending message: ${JSON.stringify(event)}`)
     };
   }
 
