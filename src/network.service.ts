@@ -5,7 +5,6 @@ import { IExptMetricSetting, IInsight, InsightType, IStreamResponse, IUser, IZer
 import { generateConnectionToken } from "./utils";
 import throttleUtil from "./throttleutil";
 
-
 const socketConnectionIntervals = [250, 500, 1000, 2000, 4000, 8000];
 
 class NetworkService {
@@ -26,21 +25,65 @@ class NetworkService {
 
   identify(user: IUser) {
     if (this.user?.id !== user.id) {
-      this.socket?.close(4003, 'identify, do not reconnect');
-      this.socket = undefined;
-
       this.user = { ...user };
       throttleUtil.setKey(this.user?.id);
+
+      if (this.socket) {
+        this.sendUserIdentifyMessage(0);
+      }
     }
   }
 
   private socket: any;
 
-  private reconnect(self: any) {
-    self.socket = null;
-    const waitTime = socketConnectionIntervals[Math.min(self.retryCounter++, socketConnectionIntervals.length - 1)];
-    setTimeout(() => eventHub.emit(websocketReconnectTopic, {}), waitTime);
+  private reconnect() {
+    this.socket = null;
+    const waitTime = socketConnectionIntervals[Math.min(this.retryCounter++, socketConnectionIntervals.length - 1)];
+    setTimeout(() => {
+      logger.logDebug('emit reconnect event');
+      eventHub.emit(websocketReconnectTopic, {});
+    }, waitTime);
     logger.logDebug(waitTime);
+  }
+
+  private sendPingMessage() {
+    const payload = {
+      messageType: 'ping',
+      data: null
+    };
+
+    setTimeout(() => {
+      try {
+        if (this.socket?.readyState === WebSocket.OPEN) {
+          logger.logDebug('sending ping')
+          this.socket.send(this.formatSendDataForSocket(payload));
+          this.sendPingMessage();
+        } else {
+          logger.logDebug(`socket closed at ${new Date()}`);
+          this.reconnect();
+        }
+      } catch (err) {
+        logger.logDebug(err);
+      }
+    }, 18000);
+  }
+
+  private sendUserIdentifyMessage(timestamp: number) {
+    const { userName, email, country, id, customizedProperties } = this.user!;
+    const payload = {
+      messageType: 'data-sync',
+      data: {
+        user: {
+          userName,
+          email,
+          country,
+          userKeyId: id,
+          customizedProperties,
+        },
+        timestamp
+      }
+    };
+    this.socket?.send(this.formatSendDataForSocket(payload));
   }
 
   createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
@@ -54,59 +97,22 @@ class NetworkService {
     // Create WebSocket connection.
     const url = this.api?.replace(/^http/, 'ws') + `/streaming?type=client&token=${generateConnectionToken(this.secret!)}`;
     that.socket = wx.connectSocket({ url });
-
-    function sendPingMessage(socket: WebSocket) {
-      const payload = {
-        messageType: 'ping',
-        data: null
-      };
-
-      setTimeout(() => {
-        try {
-          if (socket?.readyState === WebSocket.OPEN) {
-            socket.send(that.formatSendDataForSocket(payload));
-            sendPingMessage(socket);
-          } else {
-            logger.logDebug(`socket closed at ${new Date()}`);
-            that.reconnect(that);
-          }
-        } catch (err) {
-          logger.logDebug(err);
-        }
-      }, 18000);
-    }
   
     // Connection opened
     that.socket.onOpen(function (this: WebSocket, header, profile) {
-      const { userName, email, country, id, customizedProperties } =that.user!;
-      const payload = {
-        messageType: 'data-sync',
-        data: {
-          user: {
-            userName,
-            email,
-            country,
-            userKeyId: id,
-            customizedProperties,
-          },
-          timestamp
-        }
-      };
-
-      // this is the websocket instance to which the current listener is binded to, it's different from that.socket
       logger.logDebug(`Connection time: ${Date.now() - startTime} ms`);
-      that.socket?.send(that.formatSendDataForSocket(payload));
-      sendPingMessage(that.socket);
+      that.sendUserIdentifyMessage(timestamp);
+      that.sendPingMessage();
     });
   
     // Connection closed
-    that.socket.onClose(function (code, reason) {
+    that.socket.onClose(({code, reason}) => {
       logger.logDebug('close');
       if (code === 4003) { // do not reconnect when 4003
         return;
       }
 
-      that.reconnect(that);
+      that.reconnect();
     });
   
     // Connection error

@@ -1,11 +1,11 @@
 {
   "name": "ffc-wechat-miniprogram-sdk",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "https://github.com/feature-flags-co/ffc-wechat-miniprogram-sdk",
   "main": "build/index.js",
   "miniprogram": "build",
   "scripts": {
-    "copy": "rimraf ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk && copyfiles -u 1 src/*.ts ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk",
+    "cp": "rimraf ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk && copyfiles -u 1 src/*.ts ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk",
     "build": "rimraf dist && rimraf build && tsc && webpack --mode production && rimraf ts-build",
     "prepublishOnly": "npm run build",
     "lint": "gts lint",
