@@ -1,6 +1,6 @@
 {
   "name": "ffc-wechat-miniprogram-sdk",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "https://github.com/feature-flags-co/ffc-wechat-miniprogram-sdk",
   "main": "build/index.js",
   "miniprogram": "build",

@@ -83,7 +83,17 @@ class NetworkService {
         timestamp
       }
     };
-    this.socket?.send(this.formatSendDataForSocket(payload));
+
+    try {
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        logger.logDebug('sending user identify message');
+        this.socket?.send(this.formatSendDataForSocket(payload));
+      } else {
+        logger.logDebug(`didn't send user identify message because socket not open`);
+      }
+    } catch (err) {
+      logger.logDebug(err);
+    }
   }
 
   createConnection(timestamp: number, onMessage: (response: IStreamResponse) => any) {
