@@ -4,9 +4,10 @@ import { logger } from "./logger";
 import store from "./store";
 import { networkService } from "./network.service";
 import { IFeatureFlagSet, ICustomEvent, IFeatureFlag, IFeatureFlagBase, IFeatureFlagVariationBuffer, IInsight, InsightType, IOption, IStreamResponse, IUser, StreamResponseEventType, IFeatureFlagChange } from "./types";
-import { ffcguid, validateOption, validateUser } from "./utils";
+import {ffcguid, serializeUser, validateOption, validateUser} from "./utils";
 import { Queue } from "./queue";
 import { featureFlagEvaluatedBufferTopic, featureFlagEvaluatedTopic, insightsFlushTopic, insightsTopic, websocketReconnectTopic } from "./constants";
+import localStorage from "./localStorage";
 //import autoCapture from "./autocapture";
 
 
@@ -143,12 +144,14 @@ export class Ffc {
     }
 
     user.customizedProperties = user.customizedProperties?.map(p => ({name: p.name, value: `${p.value}`}));
+
+    const isUserChanged = serializeUser(user) !== localStorage.getItem('current_user');
     this._option.user = Object.assign({}, user);
+    localStorage.setItem('current_user', serializeUser(this._option.user));
 
     store.userId = this._option.user.id;
-
     networkService.identify(this._option.user);
-    await this.bootstrap();
+    await this.bootstrap(this._option.bootstrap, isUserChanged);
   }
 
   // activateDevMode(password?: string){
@@ -169,7 +172,13 @@ export class Ffc {
     return anonymousUser;
   }
 
-  async bootstrap(featureFlags?: IFeatureFlag[]): Promise<void> {
+  /**
+   * bootstrap with predefined feature flags.
+   * @param {array} featureFlags the predefined feature flags.
+   * @param {boolean} forceFullFetch if a forced full fetch should be made.
+   * @return {Promise<void>} nothing.
+   */
+  async bootstrap(featureFlags?: IFeatureFlag[], forceFullFetch?: boolean): Promise<void> {
     featureFlags = featureFlags || this._option.bootstrap;
     if (featureFlags && featureFlags.length > 0) {
       const data = {
@@ -188,7 +197,7 @@ export class Ffc {
     if (this._option.enableDataSync) {
       // start data sync
       try {
-        await this.dataSync();
+        await this.dataSync(forceFullFetch);
       }catch(err) {
         logger.log('data sync error', err);
       }
@@ -204,9 +213,9 @@ export class Ffc {
     //devMode.init(this._option.devModePassword || '');
   }
 
-  private async dataSync(): Promise<any> {
+  private async dataSync(forceFullFetch?: boolean): Promise<any> {
     return new Promise<void>((resolve, reject) => {
-      const timestamp = Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
+      const timestamp = forceFullFetch ? 0 : Math.max(...Object.values(store.getFeatureFlags()).map(ff => ff.timestamp), 0);
 
       networkService.createConnection(timestamp, (message: IStreamResponse) => {
         if (message && message.userKeyId === this._option.user?.id) {

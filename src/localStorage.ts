@@ -1,4 +1,4 @@
-import { logger } from "./logger";
+import {logger} from "./logger";
 
 export default {
     getItem(key: string): string {
@@ -19,8 +19,8 @@ export default {
     removeItem(key: string) {
         try {
             wx.removeStorageSync('key')
-          } catch (e) {
+        } catch (e) {
             logger.logDebug(e);
-          }
+        }
     }
 }
