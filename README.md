@@ -122,8 +122,10 @@ SDK would create a **flags** object from flagConfigs and put it under data of Pa
 import ffcClient from "ffc-wechat-miniprogram-sdk";
 
 // you can specify the type with IFlagConfig[] if using Typescript
+// This SDK supports type inspection, it returns the value with the type defined on remote,
+// so defaultValue should have the same type as defined on remote
 const flagConfigs = [
-  { key: 'flagkey', defaultValue: 'default value' }
+  { key: 'flagkey', defaultValue: defaultValue }
 ];
 
 // using Page
@@ -198,13 +200,14 @@ If you already have the feature flags available, two ways to pass them to the SD
     bootstrap = [{ // the array should contain all your feature flags
       id: string, // the feature flag key
       variation: string,
+      variationType: string, // the variation data type, string is used if not provided
       sendToExperiment: boolean, // ignore this for now
       timestamp: number,
       variationOptions: [{
         id: number,
         value: string
       }]
-    }]
+    }],
     ...
   }
 
@@ -216,6 +219,7 @@ If you already have the feature flags available, two ways to pass them to the SD
 const featureflags = [{ // the array should contain all your feature flags
   id: string, // the feature flag key
   variation: string,
+  variationType: string, // the variation data type, string is used if not provided
   sendToExperiment: boolean,
   timestamp: number,
   variationOptions: [{
@@ -235,7 +239,8 @@ The client object can emit JavaScript events. It emits a ready event when it rec
 
 ```javascript
 ffcClient.on('ready', (data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
+  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue } ]
+  // variationValue has the type as defined on remote
   var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 });
 
@@ -245,7 +250,8 @@ Or, you can use a promise instead of an event. The SDK has a method that return 
 
 ```javascript
 ffcClient.waitUntilReady().then((data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
+  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue } ]
+  // variationValue has the type as defined on remote
   // initialization succeeded, flag values are now available
 });
 // or, with await:
@@ -282,9 +288,12 @@ ffcClient.on('ff_update', (changes) => {
 ```javascript
 // replace feature_flag_key with your feature flag key
 ffcClient.on('ff_update:feature_flag_key', (change) => {
-  // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
+  // change has this structure {id: 'the feature_flag_key', oldValue: theOldValue, newValue: theNewValue }
+  // theOldValue and theNewValue have the type as defined on remote
   // the type is IFeatureFlagChange if you are using Typescript
-  ...
+
+  // defaultValue should have the type as defined on remote
+  const myFeature = Ffc.variation('feature_flag_key', defaultValue);
 });
 
 ```

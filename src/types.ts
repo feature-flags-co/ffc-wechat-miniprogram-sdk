@@ -67,6 +67,13 @@ export enum InsightType {
   click = 4
 }
 
+export enum VariationDataType {
+  string = 'string',
+  boolean = 'boolean',
+  number = 'number',
+  json = 'json',
+}
+
 export interface IInsight extends IFeatureFlagVariation, ICustomEvent {
   insightType: InsightType
 }
@@ -74,6 +81,7 @@ export interface IInsight extends IFeatureFlagVariation, ICustomEvent {
 export interface IFeatureFlagBase {
   id: string, // the keyname
   variation: FeatureFlagValue,
+  variationType: VariationDataType
 }
 
 export interface IFeatureFlag extends IFeatureFlagBase{

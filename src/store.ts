@@ -1,8 +1,17 @@
 import { featureFlagEvaluatedTopic } from "./constants";
 import { eventHub } from "./events";
 import { logger } from "./logger";
-import { FeatureFlagUpdateOperation, IDataStore, IFeatureFlag, IFeatureFlagChange, InsightType, StreamResponseEventType } from "./types";
+import {
+  FeatureFlagUpdateOperation,
+  FeatureFlagValue,
+  IDataStore,
+  IFeatureFlag,
+  IFeatureFlagChange,
+  InsightType,
+  StreamResponseEventType
+} from "./types";
 import localStorage from "./localStorage";
+import {parseVariation} from "./utils";
 
 const DataStoreStorageKey = 'ffcdatastore';
 
@@ -56,19 +65,23 @@ class Store {
     return this._store.featureFlags[key];
   }
 
-  getVariation(key: string): string {
+  getVariation(key: string): FeatureFlagValue {
     const featureFlag = this._store.featureFlags[key];
-    if (!!featureFlag) {
-      eventHub.emit(featureFlagEvaluatedTopic, {
-        insightType: InsightType.featureFlagUsage,
-        id: featureFlag.id,
-        timestamp: Date.now(),
-        sendToExperiment: featureFlag.sendToExperiment,
-        variation: featureFlag.variationOptions.find(o => o.value === featureFlag.variation)
-      });
+
+    if (!featureFlag) {
+      return undefined;
     }
 
-    return featureFlag?.variation;
+    eventHub.emit(featureFlagEvaluatedTopic, {
+      insightType: InsightType.featureFlagUsage,
+      id: featureFlag.id,
+      timestamp: Date.now(),
+      sendToExperiment: featureFlag.sendToExperiment,
+      variation: featureFlag.variationOptions.find(o => o.value === featureFlag.variation)
+    });
+
+    const { variationType, variation } = featureFlag;
+    return parseVariation(variationType, variation);
   }
 
   setFullData(data: IDataStore) {
@@ -174,7 +187,7 @@ class Store {
         const updatedFeatureFlags = Object.keys(storageData.featureFlags).filter(key => {
           const storageFf = storageData.featureFlags[key];
           const ff = this._store.featureFlags[key];
-          return !ff || storageFf.variation !== ff.variation;
+          return !ff || storageFf.variation !== ff.variation || storageFf.variation.variationType !== ff.variationType;
         }).map(key => {
           const storageFf = storageData.featureFlags[key];
           const ff = this._store.featureFlags[key];
