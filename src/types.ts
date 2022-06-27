@@ -1,6 +1,6 @@
 export interface IFlagConfig {
   key: string,
-  defaultValue: string
+  defaultValue: FeatureFlagValue
 }
 
 export type FeatureFlagValue = any;

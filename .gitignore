@@ -10,3 +10,4 @@ ts-build
 dist
 
 miniprogram_npm
+demos/typescript-demo/miniprogram/ffc-wechat-miniprogram-sdk

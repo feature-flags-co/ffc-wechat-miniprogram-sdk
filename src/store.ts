@@ -187,7 +187,7 @@ class Store {
         const updatedFeatureFlags = Object.keys(storageData.featureFlags).filter(key => {
           const storageFf = storageData.featureFlags[key];
           const ff = this._store.featureFlags[key];
-          return !ff || storageFf.variation !== ff.variation || storageFf.variation.variationType !== ff.variationType;
+          return !ff || storageFf.variation !== ff.variation || storageFf.variationType !== ff.variationType;
         }).map(key => {
           const storageFf = storageData.featureFlags[key];
           const ff = this._store.featureFlags[key];
