@@ -1,64 +1,62 @@
-# [featureflag.co](https://featureflag.co) wechat miniprogram SDK
-[查看中文版](./README_ZH.md)
+# [敏捷开关](https://featureflag.co) 微信小程序 SDK
+[Check English version](./README_EN.md)
 
-**[Check demo](./demos/README.MD)**
 
-## Before publish your mini program, please make sure you have added https://api.featureflag.co to your mini program's domain
- 
+**[查看 demo](./demos/README.MD)**
 
-## Introduction
+**发布小程序前请确保已将 https://api.featureflag.co 添加到小程序合法域名中**
 
-This SDK has one main work:
-- Makes feature flags avaible to wechat miniprogram
+## 概述
+SDK 主要完成以下工作:
+- 从服务端获取 feature flags 并保持和服务端数据的同步。
 
-## Data synchonization
-We use websocket to make the local data synchronized with the server, and then persist in localStorage. Whenever there is any changes to a feature flag, the changes would be pushed to the SDK, the average synchronization time is less than **100** ms. Be aware the websocket connection can be interrupted by any error or internet interruption, but it would be restored automatically right after the problem is gone.
+## 数据同步
+SDK 使用 WebSocket 来保持与服务端的数据同步，从服务端获取的数据均会存入 localStorage。无论何时当任意 feature flag 发生变化时，变更会被接近实时地推送到 SDK，经过测试，同步过程平均耗时少于 **100 ms**。当网络发生中断时 SDK 会尝试以渐增的时间间隔与服务器重新建立连接，及时恢复数据同步。
 
-## Offline mode support
-As all data is stored locally in the localStorage, in the following situations, the SDK would still work when there is temporarily no internet connection:
-- it has already recieved the data from previous conections
-- the ffcClient.bootstrap(featureFlags) method is called with all necessary feature flags
+## 离线模式
+SDK 所需的所有数据都存储于本地 localStorage, 因此在没有网络的环境中，满足下述条件之一的情况下，SDK 仍能正常工作：
+- SDK 已经从之前的 WebSocket 连接中取得过数据
+- ffcClient.bootstrap(featureFlags) 方法被手动调用， 并且 featureFlags 参数包含所有当前使用中的 feature flags
 
-In the mean time, the SDK would try to reconnect to the server by an incremental interval, this makes sure that the websocket would be restored when the internet connection is back.
+## feature flag 的计算
+所有数据都在本地，所有计算过程也都在本地，并且是实时同步计算的。计算过程时间复杂度 O(1), 小于 1 ms。
 
-## Evaluation of a feature flag
-After initialization, the SDK has all the feature flags locally and it does not need to request the remote server for any feature flag evaluation. All evaluation is done locally and synchronously.
-
-## Getting started
-### Install with npm
-Go to the directory defined by **miniprogramRoot** in **project.config.json** and run:
+## 集成 SDK
+### 使用 npm
+前往 **project.config.json** 文件中 **miniprogramRoot** 参数指定的文件夹并运行如下命令:
   ```
   npm install ffc-wechat-miniprogram-sdk --save
   ```
 
-To import the SDK:
+引入 SDK:
 ```javascript
 import ffcClient from 'ffc-wechat-miniprogram-sdk';
 ```
-### Install without npm
 
-1. Clone this repository
+### 不使用 npm
+
+1. 从 github 克隆项目到本地
 ```
 git clone https://github.com/feature-flags-co/ffc-wechat-miniprogram-sdk.git
 
 ```  
 
-2. Run the following commands in the root directory
+2. 运行如下命令编译代码
 ```
 cd ffc-wechat-miniprogram-sdk
 npm i
 npm run build
 ```
 
-3. Copy the **dist** folder to your project and change the folder name to ffc-wechat-miniprogram-sdk
+3. 将 **dist** 文件夹复制到小程序项目根目录并且重新命名为 ffc-wechat-miniprogram-sdk
 
-4. Import the SDK:
+4. 引入 SDK:
 ```javascript
 import ffcClient from 'path to ffc-wechat-miniprogram-sdk/index';
 ```
 
-### Initializing the SDK
-Before initializing the SDK, you need to get the client-side env secret of your environment from our [SaaS platform](https://portal.featureflag.co).
+### 初始化 SDK
+初始化之前请确保从[敏捷开关后台](https://portal.featureflag.co)获取对应项目环境的 secret。
 
 ```javascript
 import ffcClient from 'ffc-wechat-miniprogram-sdk'; // use path to your sdk if you are not using npm
@@ -75,7 +73,7 @@ App({
       }
     };
 
-    // initialization client
+    // initialize client
     ffcClient.init(option);
 
     // set user，this usually happens after login
@@ -91,20 +89,20 @@ App({
 })
 ```
 
-The complete list of the available parameters in option:
+以下为完整的参数列表：
 
-- **secret**: the client side secret of your environment. **mandatory** (NB. this becomes optional if enableDataSync equals false)
-- **anonymous**: true if you want to use a anonymous user, which is the case before user login to your APP. If that is your case, the user can be set later with the **identify** method after the user has logged in. The default value is false. **not mandatory**
-- **bootstrap**: init the SDK with feature flags, this will trigger the ready event immediately instead of requesting from the remote. **not mandatory**
-- **enableDataSync**: false if you do not want to sync data with remote server, in this case feature flags must be set to **bootstrap** option or be passed to the method **bootstrap**. The default value is true. **not mandatory** 
-- **api**: the API url of the server, set it only if you are self hosting the back-end. **not mandatory**
-- **user**: the user connected to your APP, can be ignored if **anonymous** equals to true. 
-  - **userName**: the user name. **mandatory**
-  - **id**: the unique identifier. **mandatory**
-  - **email**: can be useful when you configure your feature flag rules. **not mandatory**
-  - **country**: can be useful when you configure your feature flag rules. **not mandatory**
-  - **customizedProperties**: any customized properties you want to send to the back end. It is extremely powerful when you define targeting rules or segments. **not mandatory**
-     - it must have the following format:
+- **secret**: 项目环境的 secret. **必填项** (注意: 如果 enableDataSync 设置为false， 则 secret 可以为空)
+- **anonymous**: 如果值为 true 则使用匿名用户， 登录之后可以调用 **identify()** 方法来切换用户。默认值为 false. **必填项**
+- **bootstrap**: 使用本地 feature flags 初始化 SDK。当提供此参数时将会立即触发 ready event。 **非必填项**
+- **enableDataSync**: 如果值为 false 则不会与服务器进行数据同步，这时请确保通过 **bootstrap** 参数提供了所有的 feature flags 或者通过 **bootstrap()** 方法传入所有 feature flags。 默认值为 true。 **非必填项** 
+- **api**: 服务端地址，默认值为敏捷开关服务器地址。只有在使用 self-host 服务端时才需要提供此参数。 **非必填项**
+- **user**: 当前用户，如果 **anonymous** 参数设置为 true 则 无需提供 user。 
+  - **userName**: 用户名. **必填项**
+  - **id**: 用户唯一 id. **必填项**
+  - **email**: 可以在设置 feature flag 规则时使用，也可以在用户列表中查看。 **非必填项**
+  - **country**: 可以在设置 feature flag 规则时使用 **非必填项**
+  - **customizedProperties**: 可以是任何希望发送给服务器的用户自定义属性。在定义 feature flag 规则或用户组时将会非常有用。 **非必填项**
+     - 必须符合如下数据格式:
      ```json
       [{
         "name": "the name of the property",
@@ -112,68 +110,68 @@ The complete list of the available parameters in option:
       }]
      ```
 
-#### Initialization delay
-Initializing the client makes a remote request to featureflag.co, so it may take 100 milliseconds or more before the SDK emits the ready event. If you require feature flag values before rendering the page, we recommend bootstrapping the client. If you bootstrap the client, it will emit the ready event immediately.
+#### 初始化过程延迟时间
+SDK 初始化时会向服务器发送请求并建立 WebSocket 连接， 这个过程耗时 100 毫秒左右。如果希望 feature flags 立即可用，可以在初始化时通过 bootstrap 提供本地 feature flags, 这时会立即触发 ready event。初始化完成后 SDK 会用服务端数据替换本地数据。
 
-### Get the varation value of a feature flag
-SDK would create a **flags** object from flagConfigs and put it under data of Page or Component, to reference a flag in JavaScript, use this code **this.data.flags['flagkey']**, and **flags['flagkey']** in wxml.
+### 获取 feature flag 的值
+SDK 会将 flagConfigs 中配置的 feature flags 自动生成一个 flags 对象并填充到 Page 或者 Component 的 data 中，JavaScript 代码中引用方式为 **this.data.flags['flagkey']**, wxml 中则可以通过 **flags['flagkey']** 方式引用。
 
 ```javascript
 import ffcClient from "ffc-wechat-miniprogram-sdk";
 
-// you can specify the type with IFlagConfig[] if using Typescript
-// This SDK supports type inspection, it returns the value with the type defined on remote,
-// so defaultValue should have the same type as defined on remote
+// Typescript 类型为 IFlagConfig[]
+// 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+// 目前支持四种数据类型：string, boolean, number 和 json
 const flagConfigs = [
   { key: 'flagkey', defaultValue: defaultValue }
 ];
 
-// using Page
+// 使用 Page
 Page({
   data: {
     flagConfigs,
   },
   onLoad() {
-    // to use a feature flag
+    // 从 data 中获取开关值
     console.log(this.data.flags['flagkey']);
 
-    // you can always get the value of a flag with the following code
-    const variation = ffcClient.variation('flagkey', 'defaultValue');
-    // a syntactic sugar exist for boolean value
-    // const variation = ffcClient.boolVariation('flagkey', false);
+    // 从 SDK 直接获取开关值
+    // ffcClient.variation() 和 this.data.flags['flagkey'] 实现相同的效果
+    // 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+    // 目前支持四种数据类型：string, boolean, number 和 json
+    const variation = ffcClient.variation('flagkey', defaultValue);
     console.log(variation);
 
-    // to execute any code when flag value changes
+    // 监听具体某个开关返回值的变化
     ffcClient.on(`ff_update:flagkey`, (change) => {
-      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-      // the type is IFeatureFlagChange if you are using Typescript
-      // do your work
+      // change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+      // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
       console.log(change.newValue);
     });
   },
   ...
 })
 
-// Using Component
+// 使用 Component
 Component({
   data: {
     flagConfigs,
   },
   attached() {
-    // to use a feature flag
+    // 从 data 中获取开关值
     console.log(this.data.flags['flagkey']);
 
-    // you can always get the value of a flag with the following code
-    const variation = ffcClient.variation('flagkey', 'defaultValue');
-    // a syntactic sugar exist for boolean value
-    // cont variation = ffcClient.boolVariation('flagkey', false);
+    // 从 SDK 直接获取开关值
+    // ffcClient.variation() 和 this.data.flags['flagkey'] 实现相同的效果
+    // 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+    // 目前支持四种数据类型：string, boolean, number 和 json
+    const variation = ffcClient.variation('flagkey', defaultValue);
     console.log(variation);
 
-    // to execute any code when flag value changes
+    // 监听具体某个开关返回值的变化
     ffcClient.on(`ff_update:flagkey`, (change) => {
-      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-      // the type is IFeatureFlagChange if you are using Typescript
-      // do your work
+      // change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+      // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
       console.log(change.newValue);
     });
   },
@@ -181,7 +179,7 @@ Component({
 })
 
 
-// reference a flag in wxml file
+// 在 wxml 文件中使用开关，当开关返回值发生变化时，页面内容会自动刷新
 <view class="container">
   <view>
     <text>{{flags['flagkey']}}</text>
@@ -191,38 +189,36 @@ Component({
 
 
 ### bootstrap
-If you already have the feature flags available, two ways to pass them to the SDK instead of requesting from the remote.
-- By the **init** method
+如果初始化 SDK 之前已经有所有 feature flags，则可以使用以下任意一种方法将其传给 SDK：
+- 通过 **init** 方法
 ```javascript
-  // define the option with the bootstrap parameter
+  // 在 option 中定义初始化开关
   const option = {
     ...
     bootstrap = [{ // the array should contain all your feature flags
       id: string, // the feature flag key
       variation: string,
-      variationType: string, // the variation data type, string is used if not provided
       sendToExperiment: boolean, // ignore this for now
       timestamp: number,
-      variationOptions: [{
+      variationOptions: [{ // all possible variation of the feature flag
         id: number,
         value: string
       }]
-    }],
+    }]
     ...
   }
 
   ffcClient.init(option);
 ```
 
-- By the **bootstrap** method 
+- 通过 **bootstrap** 方法 
 ```javascript
 const featureflags = [{ // the array should contain all your feature flags
   id: string, // the feature flag key
   variation: string,
-  variationType: string, // the variation data type, string is used if not provided
   sendToExperiment: boolean,
   timestamp: number,
-  variationOptions: [{
+  variationOptions: [{ // all possible variation of the feature flag
     id: number,
     value: string
   }]
@@ -231,69 +227,64 @@ const featureflags = [{ // the array should contain all your feature flags
 ffcClient.bootstrap(featureflags);
 ```
 
-**If you want to disable the synchronization with remote server, set enableDataSync to false in option**. In this case, bootstrap option must be set or bootstrap method must be called with feature flags.
+**可以将参数 enableDataSync 设置为 false 以停止和服务器间的数据同步**。这时必须提供 bootstrap 参数或者调用 bootstrap() 方法以提供本地版的 feature flags 数据。
 
-To find out when the client is ready, you can use one of two mechanisms: events or promises.
+可以使用 event 或者 promise 等待 SDK 初始化结束。
 
-The client object can emit JavaScript events. It emits a ready event when it receives initial flag values from feature-flags.co. You can listen for this event to determine when the client is ready to evaluate flags.
+SDK 在初始化完成后会自动触发 ready event。可以在代码中监听 ready 事件来确保获取开关值之前本地已经取得数据。
 
 ```javascript
 ffcClient.on('ready', (data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue } ]
-  // variationValue has the type as defined on remote
+  // data 的结构为 [ {id: 'featureFlagKey', variation: variation_value} ]
+  // variation_value 具有和服务端定义的相同的数据类型
   var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 });
 
 ```
 
-Or, you can use a promise instead of an event. The SDK has a method that return a promise for initialization: waitUntilReady(). The behavior of waitUntilReady() is equivalent to the ready event. The promise resolves when the client receives its initial flag data. As with all promises, you can either use .then() to provide a callback, or use await if you are writing asynchronous code.
+或者也可以使用 promise。SDK 提供了 waitUntilReady() 方法，和 ready 事件实现相同的效果，但是提供了 promise API, 同时支持使用 await。
 
 ```javascript
 ffcClient.waitUntilReady().then((data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: variationValue } ]
-  // variationValue has the type as defined on remote
-  // initialization succeeded, flag values are now available
+  // data 的结构为 [ {id: 'featureFlagKey', variation: variation_value} ]
+  // variation_value 具有和服务端定义的相同的数据类型
+  // 初始化完成，可以正常使用开关
 });
-// or, with await:
+// 或者，使用 await:
 const featureFlags = await ffcClient.waitUntilReady();
-// initialization succeeded, flag values are now available
+// 初始化完成，可以正常使用开关
 ```
 
-The SDK only decides initialization has failed if it receives an error response indicating that the environment ID is invalid. If it has trouble connecting to feature-flags.co, it will keep retrying until it succeeds.
-
-### Set the user after initialization
-If the user parameter cannot be passed by the init method, the following method can be used to set the user after initialization.
+### 初始化结束之后切换用户
+如果初始化时使用了匿名用户，登录后我们往往需要切换到登录后的用户，这时可以使用 identity() 方法来切换用户。
 ```javascript
   ffcClient.identify(user);
 ```
 
-### Set the user to anonymous user
-We can manully call the method logout, which will switch the current user back to anonymous user if exists already or create a new anonymous user.
+### 重新切换为匿名用户
+当用户退出账户时可以调用 logout() 方法重新切换为匿名用户。
 ```javascript
   ffcClient.logout(user);
 ```
 
-### Subscribe to the changes of feature flag(s)
-To get notified when a feature flag is changed, we offer two methods
-- subscribe to the changes of any feature flag(s)
+### 监听 feature flag 变更事件
+SDK 提供了两种方法来监听 feature flag 变更事件：
+- 监听所有 feature flags 的变动
 ```javascript
 ffcClient.on('ff_update', (changes) => {
-  // changes has this structure [{id: 'the feature_flag_key', oldValue: '', newValue: ''}]
-  // the type is IFeatureFlagChange[] if you are using Typescript
+  // change 的结构为 [{id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}]
+  // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
   ...
 });
 
 ```
-- subscribe to the changes of a specific feature flag
+- 监听某个具体 feature flag 的变动
 ```javascript
-// replace feature_flag_key with your feature flag key
+// 将 feature_flag_key 替换为自己开关的 key
 ffcClient.on('ff_update:feature_flag_key', (change) => {
-  // change has this structure {id: 'the feature_flag_key', oldValue: theOldValue, newValue: theNewValue }
-  // theOldValue and theNewValue have the type as defined on remote
-  // the type is IFeatureFlagChange if you are using Typescript
-
-  // defaultValue should have the type as defined on remote
-  const myFeature = Ffc.variation('feature_flag_key', defaultValue);
+  /// change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+  // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
+  ...
 });
 
 ```
