@@ -119,57 +119,59 @@ SDK 会将 flagConfigs 中配置的 feature flags 自动生成一个 flags 对�
 ```javascript
 import ffcClient from "ffc-wechat-miniprogram-sdk";
 
-// you can specify the type with IFlagConfig[] if using Typescript
+// Typescript 类型为 IFlagConfig[]
+// 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+// 目前支持四种数据类型：string, boolean, number 和 json
 const flagConfigs = [
-  { key: 'flagkey', defaultValue: 'default value' }
+  { key: 'flagkey', defaultValue: defaultValue }
 ];
 
-// using Page
+// 使用 Page
 Page({
   data: {
     flagConfigs,
   },
   onLoad() {
-    // to use a feature flag
+    // 从 data 中获取开关值
     console.log(this.data.flags['flagkey']);
 
-    // you can always get the value of a flag with the following code
-    const variation = ffcClient.variation('flagkey', 'defaultValue');
-    // a syntactic sugar exist for boolean value
-    // const variation = ffcClient.boolVariation('flagkey', false);
+    // 从 SDK 直接获取开关值
+    // ffcClient.variation() 和 this.data.flags['flagkey'] 实现相同的效果
+    // 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+    // 目前支持四种数据类型：string, boolean, number 和 json
+    const variation = ffcClient.variation('flagkey', defaultValue);
     console.log(variation);
 
-    // to execute any code when flag value changes
+    // 监听具体某个开关返回值的变化
     ffcClient.on(`ff_update:flagkey`, (change) => {
-      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-      // the type is IFeatureFlagChange if you are using Typescript
-      // do your work
+      // change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+      // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
       console.log(change.newValue);
     });
   },
   ...
 })
 
-// Using Component
+// 使用 Component
 Component({
   data: {
     flagConfigs,
   },
   attached() {
-    // to use a feature flag
+    // 从 data 中获取开关值
     console.log(this.data.flags['flagkey']);
 
-    // you can always get the value of a flag with the following code
-    const variation = ffcClient.variation('flagkey', 'defaultValue');
-    // a syntactic sugar exist for boolean value
-    // cont variation = ffcClient.boolVariation('flagkey', false);
+    // 从 SDK 直接获取开关值
+    // ffcClient.variation() 和 this.data.flags['flagkey'] 实现相同的效果
+    // 服务端支持直接定义开关返回值类型，defaultValue 应该使用和服务端定义的相同的类型
+    // 目前支持四种数据类型：string, boolean, number 和 json
+    const variation = ffcClient.variation('flagkey', defaultValue);
     console.log(variation);
 
-    // to execute any code when flag value changes
+    // 监听具体某个开关返回值的变化
     ffcClient.on(`ff_update:flagkey`, (change) => {
-      // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-      // the type is IFeatureFlagChange if you are using Typescript
-      // do your work
+      // change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+      // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
       console.log(change.newValue);
     });
   },
@@ -177,7 +179,7 @@ Component({
 })
 
 
-// reference a flag in wxml file
+// 在 wxml 文件中使用开关，当开关返回值发生变化时，页面内容会自动刷新
 <view class="container">
   <view>
     <text>{{flags['flagkey']}}</text>
@@ -190,7 +192,7 @@ Component({
 如果初始化 SDK 之前已经有所有 feature flags，则可以使用以下任意一种方法将其传给 SDK：
 - 通过 **init** 方法
 ```javascript
-  // define the option with the bootstrap parameter
+  // 在 option 中定义初始化开关
   const option = {
     ...
     bootstrap = [{ // the array should contain all your feature flags
@@ -233,7 +235,8 @@ SDK 在初始化完成后会自动触发 ready event。可以在代码中监听 
 
 ```javascript
 ffcClient.on('ready', (data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
+  // data 的结构为 [ {id: 'featureFlagKey', variation: variation_value} ]
+  // variation_value 具有和服务端定义的相同的数据类型
   var flagValue = Ffc.variation("YOUR_FEATURE_KEY", 'the default value');
 });
 
@@ -243,12 +246,13 @@ ffcClient.on('ready', (data) => {
 
 ```javascript
 ffcClient.waitUntilReady().then((data) => {
-  // data has the following structure [ {id: 'featureFlagKey', variation: 'variation value'} ]
-  // initialization succeeded, flag values are now available
+  // data 的结构为 [ {id: 'featureFlagKey', variation: variation_value} ]
+  // variation_value 具有和服务端定义的相同的数据类型
+  // 初始化完成，可以正常使用开关
 });
-// or, with await:
+// 或者，使用 await:
 const featureFlags = await ffcClient.waitUntilReady();
-// initialization succeeded, flag values are now available
+// 初始化完成，可以正常使用开关
 ```
 
 ### 初始化结束之后切换用户
@@ -268,18 +272,18 @@ SDK 提供了两种方法来监听 feature flag 变更事件：
 - 监听所有 feature flags 的变动
 ```javascript
 ffcClient.on('ff_update', (changes) => {
-  // changes has this structure [{id: 'the feature_flag_key', oldValue: '', newValue: ''}]
-  // the type is IFeatureFlagChange[] if you are using Typescript
+  // change 的结构为 [{id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}]
+  // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
   ...
 });
 
 ```
 - 监听某个具体 feature flag 的变动
 ```javascript
-// replace feature_flag_key with your feature flag key
+// 将 feature_flag_key 替换为自己开关的 key
 ffcClient.on('ff_update:feature_flag_key', (change) => {
-  // change has this structure {id: 'the feature_flag_key', oldValue: '', newValue: ''}
-  // the type is IFeatureFlagChange if you are using Typescript
+  /// change 的结构为 {id: 'the feature_flag_key', oldValue: old_value, newValue: new_value}
+  // 其中 old_value 和 new_value 具有和服务端定义的相同的数据类型
   ...
 });
 

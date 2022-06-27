@@ -6,7 +6,7 @@
   "miniprogram": "build",
   "scripts": {
     "cptaro": "rimraf ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk && copyfiles -u 1 src/*.ts ../ffc-wechat-miniprogram-sdk-taro-demo/src/ffc-wechat-miniprogram-sdk",
-    "cpdemo": "rimraf demos/js-demo/ffc-wechat-miniprogram-sdk/index.js && copyfiles -u 1 dist/index.js demos/js-demo/ffc-wechat-miniprogram-sdk && rimraf demos/typescript-demo/miniprogram/ffc-wechat-miniprogram-sdk && copyfiles -u 1 src/*.* demos/typescript-demo/miniprogram/ffc-wechat-miniprogram-sdk",
+    "cpdemo": "npm run build && rimraf demos/js-demo/ffc-wechat-miniprogram-sdk/index.js && copyfiles -u 1 dist/index.js demos/js-demo/ffc-wechat-miniprogram-sdk && rimraf demos/typescript-demo/miniprogram/ffc-wechat-miniprogram-sdk && copyfiles -u 1 src/*.* demos/typescript-demo/miniprogram/ffc-wechat-miniprogram-sdk",
     "build": "rimraf dist && rimraf build && tsc && webpack --mode production && rimraf ts-build",
     "prepublishOnly": "npm run build",
     "lint": "gts lint",
